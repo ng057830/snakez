@@ -1,538 +1,76 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snake Math Game Modernizado - Operaciones Enteras</title>
-  <!-- Incluir KaTeX para fórmulas matemáticas -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.15.3/katex.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.15.3/katex.min.js"></script>
-  <!-- Fuente moderna -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap">
-  <style>
-    /* Variables de color y estilo moderno */
-    :root {
-      --primary-color: #2196F3; /* Azul */
-      --background-color: #F0F8FF; /* Fondo claro */
-      --text-color: #333333;
-      --accent-color: #FF9800; /* Naranja */
-      --food-color: #e53935;  /* Rojo */
-      --snake-color: #4CAF50; /* Verde */
-    }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Snake Math • Operaciones con Enteros</title>
 
-    * {
-      box-sizing: border-box;
-    }
+  <!-- Fuente -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Roboto', sans-serif;
-      background-color: var(--background-color);
-      color: var(--text-color);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-    }
+  <!-- KaTeX (primero y con defer) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-    .screen {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      text-align: center;
-      width: 100%;
-      max-width: 600px;
-      animation: fadeIn 0.5s;
-    }
-
-    .active {
-      display: flex;
-    }
-
-    h1 {
-      color: var(--primary-color);
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-    }
-
-    button {
-      background-color: var(--primary-color);
-      color: #fff;
-      border: none;
-      padding: 12px 24px;
-      font-size: 1.2rem;
-      border-radius: 25px;
-      cursor: pointer;
-      transition: background-color 0.3s, transform 0.2s;
-      margin: 10px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-
-    button:hover {
-      background-color: #1976D2;
-      transform: scale(1.05);
-    }
-
-    #game-area {
-      position: relative;
-      margin: 20px auto;
-    }
-
-    canvas {
-      background-color: #FFFFFF;
-      border-radius: 10px;
-      touch-action: none;
-      border: 2px solid var(--primary-color);
-    }
-
-    #score-display, #math-question {
-      font-size: 1.5rem;
-      margin: 10px 0;
-      background: #ffffff;
-      padding: 10px 20px;
-      border-radius: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (max-width: 600px) {
-      canvas {
-        max-width: 95vw;
-      }
-
-      h1 {
-        font-size: 2rem;
-      }
-
-      button {
-        padding: 10px 20px;
-        font-size: 1rem;
-      }
-    }
-  </style>
+  <!-- Estilos propios -->
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Pantalla de bienvenida -->
-  <div id="welcome-screen" class="screen active">
-    <h1>Snake Math Game</h1>
-    <button id="start-button">Iniciar Juego</button>
+  <div class="wrap">
+    <header class="top">
+      <div class="sp"></div>
+      <h1>Snake Math</h1>
+      <div class="sp" style="justify-self:end">
+        <button id="helpBtn" class="btn secondary" title="Ayuda / Atajos">Ayuda</button>
+      </div>
+    </header>
+
+    <section class="panel" role="region" aria-label="Estado del juego">
+      <div id="question" class="question" aria-live="polite"></div>
+
+      <div class="score-box" title="Puntuación">
+        <span>⭐</span><span id="score" class="score-val">0</span>
+      </div>
+
+      <div class="pill" title="Velocidad">
+        ⚡
+        <div class="bar" aria-label="Velocidad"><i id="spd"></i></div>
+      </div>
+
+      <div class="pill legend">
+        Flechas para mover · <span class="kbd">P</span> pausa · <span class="kbd">N</span> nuevo
+      </div>
+    </section>
+
+    <section class="canvas-card">
+      <canvas id="stage" tabindex="0" aria-label="Tablero de juego"></canvas>
+
+      <!-- Overlay -->
+      <div id="overlay" class="overlay">
+        <div class="card-modal">
+          <h2 id="modalTitle">Listo para jugar</h2>
+          <p id="modalMsg" class="legend">Recoge la respuesta correcta y evita chocar.</p>
+          <div class="stats">
+            <div class="stat">Puntaje: <b id="mScore">0</b></div>
+            <div class="stat">Mejor: <b id="mBest">0</b></div>
+            <div class="stat">Racha: <b id="mStreak">0</b></div>
+          </div>
+          <div class="modal-actions">
+            <button id="playBtn" class="btn">Iniciar</button>
+            <button id="againBtn" class="btn" style="display:none">Otra vez</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="legend foot">
+      Operaciones con enteros (±, × y ÷ exacta). Números en chips responsivos: no desbordan el círculo.
+    </footer>
   </div>
 
-  <!-- Pantalla de juego -->
-  <div id="game-screen" class="screen">
-    <div id="math-question"></div>
-    <div id="score-display">Puntuación: 0</div>
-    <div id="game-area">
-      <canvas id="game-canvas"></canvas>
-    </div>
-  </div>
-
-  <!-- Pantalla de fin de partida -->
-  <div id="game-over-screen" class="screen">
-    <h1>¡Buen Intento!</h1>
-    <div id="final-score">Puntuación Final: 0</div>
-    <button id="next-game-button">Jugar Otra Vez</button>
-  </div>
-
-  <!-- Pantalla de fin de sesión -->
-  <div id="session-over-screen" class="screen">
-    <h1>Sesión Terminada</h1>
-    <div id="session-scores"></div>
-    <div id="max-score"></div>
-    <button id="new-session-button">Nueva Sesión</button>
-  </div>
-
-  <script>
-    class SnakeMathGame {
-      constructor() {
-        this.canvas = document.getElementById('game-canvas');
-        this.ctx = this.canvas.getContext('2d');
-        this.cellSize = 20;
-        this.canvas.width = 400;
-        this.canvas.height = 400;
-        
-        this.snake = [];
-        this.direction = 'right';
-        this.nextDirection = 'right';
-        this.food = [];
-        this.score = 0;
-        this.currentQuestion = null;
-        this.gameLoop = null;
-        this.touchStartX = null;
-        this.touchStartY = null;
-        this.scores = [];
-        this.maxGames = 10;
-        
-        this.initializeGame();
-        this.setupEventListeners();
-      }
-
-      // Inicializa la partida
-      initializeGame() {
-        this.snake = [
-          {x: 6, y: 10},
-          {x: 5, y: 10},
-          {x: 4, y: 10}
-        ];
-        this.direction = 'right';
-        this.nextDirection = 'right';
-        this.score = 0;
-        this.generateNewQuestion();
-        this.placeFood();
-        this.updateScore();
-      }
-
-      // Genera una nueva pregunta, que puede ser de dos o tres términos
-      generateNewQuestion() {
-        const operations = ['+', '-', '\\times', '\\div'];
-        const op = operations[Math.floor(Math.random() * operations.length)];
-        // Decide si se usan 2 o 3 términos. Para división, se reduce la probabilidad de tres términos.
-        let useThreeTerms = Math.random() < 0.5;
-        if(op === '\\div' && Math.random() >= 0.3) {
-          useThreeTerms = false;
-        }
-        
-        let questionText = '';
-        let answer;
-
-        // Para obtener números aleatorios (incluye negativos)
-        const aInt = (min, max) => getRandomInt(min, max);
-
-        if(op === '+') {
-          if(!useThreeTerms) {
-            let a = aInt(-20, 20);
-            let b = aInt(-20, 20);
-            answer = a + b;
-            questionText = `${a} + ${b}`;
-          } else {
-            let a = aInt(-20, 20);
-            let b = aInt(-20, 20);
-            let c = aInt(-20, 20);
-            answer = a + b + c;
-            questionText = `${a} + ${b} + ${c}`;
-          }
-        } else if(op === '-') {
-          if(!useThreeTerms) {
-            let a = aInt(-20, 20);
-            let b = aInt(-20, 20);
-            answer = a - b;
-            questionText = `${a} - ${b}`;
-          } else {
-            let a = aInt(-20, 20);
-            let b = aInt(-20, 20);
-            let c = aInt(-20, 20);
-            answer = a - b - c;
-            questionText = `${a} - ${b} - ${c}`;
-          }
-        } else if(op === '\\times') {
-          if(!useThreeTerms) {
-            let a = aInt(-10, 10);
-            let b = aInt(-10, 10);
-            answer = a * b;
-            questionText = `${a} \\times ${b}`;
-          } else {
-            let a = aInt(-10, 10);
-            let b = aInt(-10, 10);
-            let c = aInt(-10, 10);
-            answer = a * b * c;
-            questionText = `${a} \\times ${b} \\times ${c}`;
-          }
-        } else if(op === '\\div') {
-          // Función auxiliar para obtener un número distinto de cero
-          const getNonZero = (min, max) => {
-            let num = 0;
-            do {
-              num = aInt(min, max);
-            } while(num === 0);
-            return num;
-          };
-          if(!useThreeTerms) {
-            let b = getNonZero(-10, 10);
-            answer = aInt(-10, 10);
-            let a = answer * b; // garantiza división exacta
-            questionText = `${a} \\div ${b}`;
-          } else {
-            let b = getNonZero(-10, 10);
-            let c = getNonZero(-10, 10);
-            answer = aInt(-10, 10);
-            let a = answer * b * c; // garantiza que (a ÷ b) ÷ c = answer
-            questionText = `${a} \\div ${b} \\div ${c}`;
-          }
-        }
-
-        this.currentQuestion = {
-          text: questionText,
-          answer: answer,
-          wrongAnswers: this.generateWrongAnswers(answer)
-        };
-
-        const mathQuestion = document.getElementById('math-question');
-        katex.render(this.currentQuestion.text + " = ?", mathQuestion);
-      }
-
-      // Genera respuestas incorrectas a partir de la respuesta correcta
-      generateWrongAnswers(correctAnswer) {
-        const wrongAnswers = new Set();
-        // Se intentan generar 3 respuestas equivocadas en un rango de offset de -10 a 10
-        while(wrongAnswers.size < 3) {
-          let offset = getRandomInt(-10, 10);
-          let wrong = correctAnswer + offset;
-          if(wrong === correctAnswer) continue;
-          wrongAnswers.add(wrong);
-        }
-        return Array.from(wrongAnswers);
-      }
-
-      // Ubica en el canvas las “galletas” que contienen las respuestas (correcta e incorrectas)
-      placeFood() {
-        const answers = [...this.currentQuestion.wrongAnswers, this.currentQuestion.answer];
-        this.food = [];
-        const safeDistance = 3;
-        for(let answer of answers) {
-          let position;
-          let attempts = 0;
-          do {
-            position = {
-              x: Math.floor(Math.random() * (this.canvas.width / this.cellSize)),
-              y: Math.floor(Math.random() * (this.canvas.height / this.cellSize)),
-              value: answer
-            };
-            attempts++;
-          } while(
-            (this.isPositionOccupied(position) || this.isNearSnakeHead(position, safeDistance)) &&
-            attempts < 100
-          );
-          if(attempts >= 100) {
-            position = {
-              x: Math.floor(Math.random() * (this.canvas.width / this.cellSize)),
-              y: Math.floor(Math.random() * (this.canvas.height / this.cellSize)),
-              value: answer
-            };
-          }
-          this.food.push(position);
-        }
-      }
-
-      isPositionOccupied(position) {
-        return this.snake.some(segment => segment.x === position.x && segment.y === position.y) ||
-               this.food.some(food => food.x === position.x && food.y === position.y);
-      }
-
-      isNearSnakeHead(position, distance) {
-        const head = this.snake[0];
-        const dx = Math.abs(head.x - position.x);
-        const dy = Math.abs(head.y - position.y);
-        return dx <= distance && dy <= distance;
-      }
-
-      // Mueve la serpiente según la dirección establecida
-      moveSnake() {
-        this.direction = this.nextDirection;
-        const head = {...this.snake[0]};
-        switch(this.direction) {
-          case 'up': head.y--; break;
-          case 'down': head.y++; break;
-          case 'left': head.x--; break;
-          case 'right': head.x++; break;
-        }
-        if(this.checkCollision(head)) {
-          this.endGame();
-          return;
-        }
-        this.snake.unshift(head);
-        const foodEatenIndex = this.food.findIndex(f => f.x === head.x && f.y === head.y);
-        if(foodEatenIndex !== -1) {
-          const eatenValue = this.food[foodEatenIndex].value;
-          if(eatenValue === this.currentQuestion.answer) {
-            this.score += 5;  // Suma 5 puntos por respuesta correcta
-            this.generateNewQuestion();
-            this.placeFood();
-          } else {
-            this.score = Math.max(0, this.score - 3);  // Resta 3 puntos por error
-            if(this.snake.length > 3) {
-              this.snake.pop(); // Penaliza quitando un segmento
-            }
-            this.food.splice(foodEatenIndex, 1);
-          }
-          this.updateScore();
-        } else {
-          this.snake.pop();
-        }
-      }
-
-      checkCollision(head) {
-        return head.x < 0 || 
-               head.x >= this.canvas.width / this.cellSize ||
-               head.y < 0 || 
-               head.y >= this.canvas.height / this.cellSize ||
-               this.snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y) ||
-               this.snake.length < 3;
-      }
-
-      // Dibuja la serpiente y los alimentos en el canvas
-      draw() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        // Dibujar la serpiente
-        this.snake.forEach((segment, index) => {
-          this.ctx.fillStyle = index === 0 ? 
-            getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim() : 
-            getComputedStyle(document.documentElement).getPropertyValue('--snake-color').trim();
-          this.ctx.fillRect(
-            segment.x * this.cellSize,
-            segment.y * this.cellSize,
-            this.cellSize - 1,
-            this.cellSize - 1
-          );
-        });
-        // Dibujar las “galletas” (círculos con el número)
-        this.food.forEach(food => {
-          this.ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--food-color').trim();
-          this.ctx.beginPath();
-          this.ctx.arc(
-            food.x * this.cellSize + this.cellSize / 2,
-            food.y * this.cellSize + this.cellSize / 2,
-            this.cellSize - 4,
-            0,
-            2 * Math.PI
-          );
-          this.ctx.fill();
-          this.ctx.fillStyle = '#ffffff';
-          this.ctx.font = '14px Arial';
-          this.ctx.textAlign = 'center';
-          this.ctx.textBaseline = 'middle';
-          this.ctx.fillText(
-            food.value.toString(),
-            food.x * this.cellSize + this.cellSize / 2,
-            food.y * this.cellSize + this.cellSize / 2
-          );
-        });
-      }
-
-      updateScore() {
-        document.getElementById('score-display').textContent = `Puntuación: ${this.score}`;
-      }
-
-      startGame() {
-        this.initializeGame();
-        this.gameLoop = setInterval(() => {
-          this.moveSnake();
-          this.draw();
-        }, 150);
-        document.getElementById('welcome-screen').classList.remove('active');
-        document.getElementById('game-over-screen').classList.remove('active');
-        document.getElementById('session-over-screen').classList.remove('active');
-        document.getElementById('game-screen').classList.add('active');
-      }
-
-      endGame() {
-        clearInterval(this.gameLoop);
-        this.scores.push(this.score);
-        if (this.scores.length < this.maxGames) {
-          document.getElementById('final-score').textContent = `Puntuación Final: ${this.score}`;
-          document.getElementById('game-screen').classList.remove('active');
-          document.getElementById('game-over-screen').classList.add('active');
-        } else {
-          this.showSessionResults();
-        }
-      }
-
-      showSessionResults() {
-        const sessionScores = document.getElementById('session-scores');
-        sessionScores.innerHTML = '<h2>Puntajes de la Sesión:</h2>';
-        this.scores.forEach((score, index) => {
-          sessionScores.innerHTML += `<p>Partida ${index + 1}: ${score}</p>`;
-        });
-        const maxScore = Math.max(...this.scores);
-        document.getElementById('max-score').textContent = `Puntaje Máximo: ${maxScore}`;
-        document.getElementById('game-screen').classList.remove('active');
-        document.getElementById('game-over-screen').classList.remove('active');
-        document.getElementById('session-over-screen').classList.add('active');
-      }
-
-      setupEventListeners() {
-        document.getElementById('start-button').addEventListener('click', () => this.startGame());
-        document.getElementById('next-game-button').addEventListener('click', () => {
-          document.getElementById('game-over-screen').classList.remove('active');
-          this.startGame();
-        });
-        document.getElementById('new-session-button').addEventListener('click', () => {
-          this.scores = [];
-          document.getElementById('session-over-screen').classList.remove('active');
-          document.getElementById('welcome-screen').classList.add('active');
-        });
-        // Controles con teclado
-        document.addEventListener('keydown', (event) => {
-          if(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
-            event.preventDefault();
-          }
-          switch(event.key) {
-            case 'ArrowUp':
-              if(this.direction !== 'down') this.nextDirection = 'up';
-              break;
-            case 'ArrowDown':
-              if(this.direction !== 'up') this.nextDirection = 'down';
-              break;
-            case 'ArrowLeft':
-              if(this.direction !== 'right') this.nextDirection = 'left';
-              break;
-            case 'ArrowRight':
-              if(this.direction !== 'left') this.nextDirection = 'right';
-              break;
-          }
-        });
-        // Controles táctiles para dispositivos móviles
-        this.canvas.addEventListener('touchstart', (e) => {
-          this.touchStartX = e.touches[0].clientX;
-          this.touchStartY = e.touches[0].clientY;
-          e.preventDefault();
-        }, { passive: false });
-        this.canvas.addEventListener('touchmove', (e) => {
-          if (!this.touchStartX || !this.touchStartY) return;
-          const touchEndX = e.touches[0].clientX;
-          const touchEndY = e.touches[0].clientY;
-          const deltaX = touchEndX - this.touchStartX;
-          const deltaY = touchEndY - this.touchStartY;
-          if (Math.abs(deltaX) > 30 || Math.abs(deltaY) > 30) {
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-              if (deltaX > 0 && this.direction !== 'left') {
-                this.nextDirection = 'right';
-              } else if (deltaX < 0 && this.direction !== 'right') {
-                this.nextDirection = 'left';
-              }
-            } else {
-              if (deltaY > 0 && this.direction !== 'up') {
-                this.nextDirection = 'down';
-              } else if (deltaY < 0 && this.direction !== 'down') {
-                this.nextDirection = 'up';
-              }
-            }
-            this.touchStartX = touchEndX;
-            this.touchStartY = touchEndY;
-          }
-          e.preventDefault();
-        }, { passive: false });
-        this.canvas.addEventListener('touchend', () => {
-          this.touchStartX = null;
-          this.touchStartY = null;
-        });
-      }
-    }
-
-    // Inicializar el juego cuando el DOM esté listo
-    document.addEventListener('DOMContentLoaded', () => {
-      new SnakeMathGame();
-    });
-
-    // Función auxiliar global para obtener números enteros (incluye negativos)
-    function getRandomInt(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-  </script>
+  <!-- Tu JS (defer para ejecutarse tras KaTeX y el DOM) -->
+  <script defer src="app.js"></script>
 </body>
 </html>
